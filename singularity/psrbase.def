@@ -193,7 +193,7 @@ From: mambaorg/micromamba:2.6.1
     rm -rf /tmp/tempo2
 
     apt-get clean
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    rm -rf /var/lib/apt/lists/*
 
 %test
     set -eu

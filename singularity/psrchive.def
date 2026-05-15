@@ -108,7 +108,7 @@ From: psrbase.sif
 
     rm -rf /tmp/psrchive
     apt-get clean
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    rm -rf /var/lib/apt/lists/*
 
 %test
     set -eu

@@ -2,100 +2,38 @@ Bootstrap: localimage
 From: psrenterprise.sif
 
 %labels
+    org.opencontainers.image.title psrnessai
     org.opencontainers.image.source https://github.com/golamshaifullah/psrall_containers
-    org.opencontainers.image.description nessai/PyTorch CUDA layer built on psrenterprise
+    org.opencontainers.image.description "nessai CPU image on psrenterprise"
 
 %environment
-    export INSTALL_DIR=/usr/local
-
-    export PATH=/usr/local/bin:/opt/mamba/bin:$PATH
-    export CPATH=/usr/local/include:/usr/local/pgplot:$CPATH
-    export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:/opt/mamba/lib:$LD_LIBRARY_PATH
-    export LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:$LIBRARY_PATH
-    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/hdf5/lib/pkgconfig:$PKG_CONFIG_PATH
-
-    export TEMPO2=/usr/local/tempo2
-    export TEMPO2_CLOCK_DIR=/usr/local/tempo2/T2runtime
-    export TEMPO2_PATH=/usr/local/tempo2/T2runtime
-    export TEMPO2_PLUGIN_PATH=/usr/local/tempo2/T2runtime/plugins
-
-    export PSRCHIVE_PATH=/usr/local/psrchive
-    export PSRCHIVE_CONFIG=/usr/local/etc/psrchive.cfg
-
-    export PGPLOT_DIR=/usr/local/pgplot
-    export PGPLOT_FONT=/usr/local/pgplot/grfont.dat
-    export PGPLOT_DEV=/xs
-    export PGPLOT_BACKGROUND=white
-    export PGPLOT_FOREGROUND=black
-    export PGPLOT_INCLUDES=/usr/local/pgplot
-    export PGPLOT_LIB=/usr/local/pgplot
-    export PGPLOT_TYPE=pgplot
-
-    export CERT_SOURCE=/etc/ssl/certs/ca-certificates.crt
-    export MAMBA_USER=mambauser
-    export MAMBA_USER_ID=57439
-    export MAMBA_USER_GID=57439
-    export LANG=C.UTF-8
-    export LC_ALL=C.UTF-8
-    export ENV_NAME=base
     export MAMBA_ROOT_PREFIX=/opt/mamba
     export MAMBA_EXE=/bin/micromamba
-
+    export PATH=/opt/mamba/bin:/usr/local/tempo2/bin:/usr/local/bin:$PATH
+    export LD_LIBRARY_PATH=/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 
 %post
     set -eux
 
-    export INSTALL_DIR=/usr/local
-
-    export PATH=/usr/local/bin:/opt/mamba/bin:$PATH
-    export CPATH=/usr/local/include:/usr/local/pgplot:${CPATH:-}
-    export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:/opt/mamba/lib:${LD_LIBRARY_PATH:-}
-    export LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:${LIBRARY_PATH:-}
-    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH:-}
-
-    export TEMPO2=/usr/local/tempo2
-    export TEMPO2_CLOCK_DIR=${TEMPO2}/T2runtime
-    export TEMPO2_PATH=${TEMPO2}/T2runtime
-    export TEMPO2_PLUGIN_PATH=${TEMPO2}/T2runtime/plugins
-
-    export PSRCHIVE_PATH=/usr/local/psrchive
-    export PSRCHIVE_CONFIG=/usr/local/etc/psrchive.cfg
-
-    export PGPLOT_DIR=/usr/local/pgplot
-    export PGPLOT_FONT=${PGPLOT_DIR}/grfont.dat
-    export PGPLOT_DEV=/xs
-    export PGPLOT_BACKGROUND=white
-    export PGPLOT_FOREGROUND=black
-    export PGPLOT_INCLUDES=${PGPLOT_DIR}
-    export PGPLOT_LIB=${PGPLOT_DIR}
-    export PGPLOT_TYPE=pgplot
-
-    export CERT_SOURCE=/etc/ssl/certs/ca-certificates.crt
     export MAMBA_ROOT_PREFIX=/opt/mamba
     export MAMBA_EXE=/bin/micromamba
-    export ENV_NAME=base
-    export LANG=C.UTF-8
-    export LC_ALL=C.UTF-8
+    export PATH=/opt/mamba/bin:/usr/local/tempo2/bin:/usr/local/bin:${PATH}
 
-
-    micromamba install -y -n base -c pytorch -c nvidia -c conda-forge \
-        gitpython \
+    # Keep the default CI image CPU-only. CUDA variants should be separate defs.
+    micromamba install -y -n base \
+        -c conda-forge \
+        --strict-channel-priority \
         nessai \
         pytorch \
         torchvision \
-        torchaudio \
-        pytorch-cuda=12.4
+        torchaudio
 
-    micromamba clean --all -y
-    apt-get clean
-    apt-get -y autoremove || true
+    micromamba clean --all --yes
 
 %test
-    python - <<'PYTEST'
-import torch
+    set -eu
+    python - <<'PY'
 import nessai
-print(torch.__version__)
-PYTEST
-
-%help
-    nessai/PyTorch layer. This is CUDA-enabled through pytorch-cuda=12.4.
+import torch
+print('psrnessai imports ok; cuda_available=', torch.cuda.is_available())
+PY

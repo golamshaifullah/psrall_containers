@@ -1,0 +1,116 @@
+BootStrap: localimage
+From: psrenterprise.sif
+
+
+%environment
+    export INSTALL_DIR=/usr/local/
+    export PATH=/usr/local/bin:$PATH
+    export CPATH=/usr/local/include:$CPATH
+    export LD_LIBRARY_PATH=/usr/local/lib:/opt/mamba/lib/:$LD_LIBRARY_PATH
+    export LIBRARY_PATH=/usr/local/lib:$LIBRARY_PATH
+    export TEMPO2=/usr/local/tempo2
+    export TEMPO2_CLOCK_DIR=/usr/local/tempo2/T2runtime
+    export TEMPO2_PATH=/usr/local/tempo2/T2runtime
+    export TEMPO2_PLUGIN_PATH=/usr/local/tempo2/T2runtime/plugins
+    export PSRCHIVE_PATH=/usr/local/psrchive
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
+    export PGPLOT_DEV=/xs
+    export PGPLOT_BACKGROUND=white
+    export PGPLOT_FOREGROUND=black
+    export PGPLOT_INCLUDES=/usr/local/include
+    export PGPLOT_LIB=/usr/local/lib
+    export GIZA_LIBS="-lgiza"
+    export PGPLOT_TYPE=giza
+    export CERT_SOURCE='/etc/ssl/certs/ca-certificates.crt'
+    export MAMBA_USER=mambauser
+    export MAMBA_USER_ID=57439
+    export MAMBA_USER_GID=57439
+    export MAMBA_USER=$MAMBA_USER
+    export MAMBA_USER_ID=$MAMBA_USER_ID
+    export MAMBA_USER_GID=$MAMBA_USER_GID
+    export LANG=C.UTF-8 LC_ALL=C.UTF-8
+    export ENV_NAME="base"
+    export MAMBA_ROOT_PREFIX="/opt/mamba"
+    export MAMBA_EXE="/bin/micromamba"
+    export PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
+
+
+%post
+    export INSTALL_DIR=/usr/local/
+    export PATH=/usr/local/bin:$PATH
+    export CPATH=/usr/local/include:$CPATH
+    export LD_LIBRARY_PATH=/usr/local/lib:/opt/mamba/lib/:$LD_LIBRARY_PATH
+    export LIBRARY_PATH=/usr/local/lib:$LIBRARY_PATH
+    export TEMPO2=/usr/local/tempo2
+    export TEMPO2_CLOCK_DIR=/usr/local/tempo2/T2runtime
+    export TEMPO2_PATH=/usr/local/tempo2/T2runtime
+    export TEMPO2_PLUGIN_PATH=/usr/local/tempo2/T2runtime/plugins
+    export PSRCHIVE_PATH=/usr/local/psrchive
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
+    export MAMBA_ROOT_PREFIX=/usr/local/micromamba
+    export PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
+    export PGPLOT_DEV=/xs
+    export PGPLOT_BACKGROUND=white
+    export PGPLOT_FOREGROUND=black
+    export PGPLOT_INCLUDES=/usr/local/include
+    export PGPLOT_LIB=/usr/local/lib
+    export GIZA_LIBS="-lgiza"
+    export PGPLOT_TYPE=giza
+    export CERT_SOURCE='/etc/ssl/certs/ca-certificates.crt'
+    export MAMBA_USER=mambauser
+    export MAMBA_USER_ID=57439
+    export MAMBA_USER_GID=57439
+    export MAMBA_USER=$MAMBA_USER
+    export MAMBA_USER_ID=$MAMBA_USER_ID
+    export MAMBA_USER_GID=$MAMBA_USER_GID
+    export LANG=C.UTF-8 LC_ALL=C.UTF-8
+    export ENV_NAME="base"
+    export MAMBA_ROOT_PREFIX="/opt/mamba"
+    export MAMBA_EXE="/opt/mamba/bin/micromamba"
+    export PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
+    
+    mkdir -p ${INSTALL_DIR}/src
+
+    apt-get install -y --no-install-recommends libgsl27 libgsl-dev
+    ln -s /usr/lib/x86_64-linux-gnu/libgsl.so /usr/lib/x86_64-linux-gnu/libgsl.so.25
+    
+#*******************
+#      EPSIC 
+#*******************
+%post
+    cd ${INSTALL_DIR}/src && git clone https://github.com/straten/epsic
+    cd epsic && cd src && ./bootstrap && ./configure CFLAGS=-fPIC FFLAGS=-fPIC --prefix=${INSTALL_DIR} --enable-shared
+    make -j${NP} && make install && make distclean
+
+#*******************
+#     PSRCHIVE
+#*******************
+%post
+    cd ${INSTALL_DIR}/src && git clone http://git.code.sf.net/p/psrchive/code psrchive
+    cd psrchive && ./bootstrap
+    ./configure PYTHON=/usr/bin/python3 --prefix=${INSTALL_DIR} --enable-shared --with-x \
+      --with-psrcat=psrcat --with-psrxml-dir=${INSTALL_DIR}/lib \
+      --with-eigen-include-dir=${INSTALL_DIR}/include/eigen3 --with-eigen-dir=${INSTALL_DIR}/src/eigen \
+      --with-splinter-dir=${INSTALL_DIR}/src/splinter
+    make -j${NP} && make install && make distclean
+    export PSRCHIVE_CONFIG=${INSTALL_DIR}/etc/psrchive.cfg
+    ls ${INSTALL_DIR}
+    ls ${INSTALL_DIR}/bin
+    
+    ${INSTALL_DIR}/bin/psrchive_config > $PSRCHIVE_CONFIG
+    sed -i 's/^Dispersion::barycentric_correction/#Dispersion::barycentric_correction/' $PSRCHIVE_CONFIG
+    sed -i '/^#.*Dispersion::barycentric_correction\ =/a Dispersion::barycentric_correction\ =\ 1' $PSRCHIVE_CONFIG
+    sed -i 's/^WeightedFrequency::round_to_kHz/#WeightedFrequency::round_to_kHz/' $PSRCHIVE_CONFIG
+    sed -i '/^#.*WeightedFrequency::round_to_kHz\ =/a WeightedFrequency::round_to_kHz\ =\ 0' $PSRCHIVE_CONFIG
+    sed -i 's/^Predictor::default/#Predictor::default/' $PSRCHIVE_CONFIG
+    sed -i '/^#.*Predictor::default\ =/a Predictor::default\ =\ tempo2' $PSRCHIVE_CONFIG
+    sed -i 's/^Predictor::policy/#Predictor::policy/' $PSRCHIVE_CONFIG
+    sed -i '/^#.*Predictor::policy\ =/a Predictor::policy\ =\ default' $PSRCHIVE_CONFIG
+    sed -i 's/^FrequencyAppend::weight/#FrequencyAppend::weight/' $PSRCHIVE_CONFIG
+    sed -i '/^#.*FrequencyAppend::weight\ =/a FrequencyAppend::weight\ =\ none' $PSRCHIVE_CONFIG
+    sed -i 's/^FrequencyAppend::force_new_predictor/#FrequencyAppend::force_new_predictor/' $PSRCHIVE_CONFIG
+    sed -i '/^#.*FrequencyAppend::force_new_predictor\ =/a FrequencyAppend::force_new_predictor\ =\ 1' $PSRCHIVE_CONFIG
+    sed -i 's/^ArrivalTime::default_format/#ArrivalTime::default_format/' $PSRCHIVE_CONFIG
+    sed -i '/^#.*ArrivalTime::default_format\ =/a ArrivalTime::default_format\ =\ Tempo2' $PSRCHIVE_CONFIG
+
+

@@ -1,0 +1,126 @@
+Bootstrap: docker
+From: mambaorg/micromamba:2.0.6
+
+%environment
+    export PATH=/usr/local/bin:$PATH
+    export CPATH=/usr/local/include:$CPATH
+    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+    export LIBRARY_PATH=/usr/local/lib:$LIBRARY_PATH
+    export TEMPO2=/usr/local/tempo2
+    export TEMPO2_CLOCK_DIR=/usr/local/tempo2/T2runtime
+    export TEMPO2_PATH=/usr/local/tempo2/T2runtime
+    export TEMPO2_PLUGIN_PATH=/usr/local/tempo2/T2runtime/plugins
+    export PSRCHIVE_PATH=/usr/local/psrchive
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
+    export PGPLOT_DEV=/xs
+    export PGPLOT_BACKGROUND=white
+    export PGPLOT_FOREGROUND=black
+    export PGPLOT_INCLUDES=/usr/local/include
+    export PGPLOT_LIB=/usr/local/lib
+    export GIZA_LIBS="-lgiza"
+    export PGPLOT_TYPE=giza
+    export CERT_SOURCE='/etc/ssl/certs/ca-certificates.crt'
+    export MAMBA_USER=mambauser
+    export MAMBA_USER_ID=57439
+    export MAMBA_USER_GID=57439
+    export MAMBA_USER=$MAMBA_USER
+    export MAMBA_USER_ID=$MAMBA_USER_ID
+    export MAMBA_USER_GID=$MAMBA_USER_GID
+    export LANG=C.UTF-8 LC_ALL=C.UTF-8
+    export ENV_NAME="base"
+    export MAMBA_ROOT_PREFIX="/opt/mamba"
+    export MAMBA_EXE="/bin/micromamba"
+    export PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
+
+
+%post
+    export PATH=/usr/local/bin:$PATH
+    export CPATH=/usr/local/include:$CPATH
+    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+    export LIBRARY_PATH=/usr/local/lib:$LIBRARY_PATH
+    export TEMPO2=/usr/local/tempo2
+    export TEMPO2_CLOCK_DIR=/usr/local/tempo2/T2runtime
+    export TEMPO2_PATH=/usr/local/tempo2/T2runtime
+    export TEMPO2_PLUGIN_PATH=/usr/local/tempo2/T2runtime/plugins
+    export PSRCHIVE_PATH=/usr/local/psrchive
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
+    export MAMBA_ROOT_PREFIX=/usr/local/micromamba
+    export PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
+    export PGPLOT_DEV=/xs
+    export PGPLOT_BACKGROUND=white
+    export PGPLOT_FOREGROUND=black
+    export PGPLOT_INCLUDES=/usr/local/include
+    export PGPLOT_LIB=/usr/local/lib
+    export GIZA_LIBS="-lgiza"
+    export PGPLOT_TYPE=giza
+    export CERT_SOURCE='/etc/ssl/certs/ca-certificates.crt'
+    export MAMBA_USER=mambauser
+    export MAMBA_USER_ID=57439
+    export MAMBA_USER_GID=57439
+    export MAMBA_USER=$MAMBA_USER
+    export MAMBA_USER_ID=$MAMBA_USER_ID
+    export MAMBA_USER_GID=$MAMBA_USER_GID
+    export LANG=C.UTF-8 LC_ALL=C.UTF-8
+    export ENV_NAME="base"
+    export MAMBA_ROOT_PREFIX="/opt/mamba"
+    export MAMBA_EXE="/opt/mamba/bin/micromamba"
+    export PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
+
+    # Update package index and install necessary system dependencies
+    apt-get update && apt-get install -y --no-install-recommends curl \
+        build-essential curl ca-certificates git wget \
+        cmake gfortran automake autoconf libtool autoconf-archive build-essential \
+        zlib1g-dev libbz2-dev libssl-dev \
+        libfftw3-dev libgsl-dev libltdl-dev \
+        libpng-dev libcairo2-dev libfontconfig1-dev libfreetype6-dev \
+        libsqlite3-dev libncurses-dev libreadline-dev libglib2.0-dev \
+        libeigen3-dev tcl-dev tk-dev libcfitsio-dev \
+        python3 python3-pip python3-dev \
+        libopenblas-dev liblapack-dev \
+        && rm -rf /var/lib/apt/lists/*
+
+    # Install giza
+    cd /tmp
+    git clone https://github.com/danieljprice/giza.git
+    cd giza
+    ./configure --prefix=/usr/local/
+    make -j$(nproc)
+    make install
+    rm -rf /tmp/giza
+
+
+    # Install HDF5
+    cd /tmp
+    wget -q --no-check-certificate https://support.hdfgroup.org/releases/hdf5/v1_14/v1_14_6/downloads/hdf5-1.14.6.tar.gz
+    tar -xzf hdf5-1.14.6.tar.gz
+    cd hdf5-1.14.6
+    ./configure --prefix=/usr/local/hdf5 --enable-cxx --enable-fortran --enable-profiling=yes
+    make -j$(nproc)
+    make -j$(nproc) install
+    rm -rf /tmp/hdf5-1.14.6 /tmp/hdf5-1.14.6.tar.gz
+    
+    # Install CFITSIO
+    cd /tmp
+    wget -q --no-check-certificate http://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio-3.47.tar.gz
+    tar -xzf cfitsio-3.47.tar.gz
+    cd cfitsio-3.47
+    ./configure --prefix=/usr/local --enable-reentrant --enable-sse2
+    make -j$(nproc)
+    make -j$(nproc) install
+    rm -rf /tmp/cfitsio-3.47 /tmp/cfitsio-3.47.tar.gz
+
+    # Install Tempo2
+    cd /tmp
+    rm -rf /tmp/tempo2
+    git clone https://bitbucket.org/psrsoft/tempo2.git
+    cd tempo2
+    ./bootstrap
+    cd /tmp/tempo2 && ./configure --prefix=${TEMPO2} --with-pgplot=giza --with-tempo2-plug-dir=${TEMPO2}/plugins --enable-static --with-fftw3-dir=/usr/local/fftw --enable-shared --with-pic --x-libraries=/usr/lib/x86_64-linux-gnu F77=gfortran
+    make -j$(nproc)
+    make -j$(nproc) install
+    make -j$(nproc) plugins-install
+    cp -r T2runtime/* ${TEMPO2}
+    rm -rf /tmp/tempo2
+
+
+

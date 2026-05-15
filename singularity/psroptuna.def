@@ -1,0 +1,79 @@
+BootStrap: localimage
+From: psrnessai.sif
+
+
+%environment
+    export PATH=/usr/local/bin:$PATH
+    export CPATH=/usr/local/include:$CPATH
+    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+    export LIBRARY_PATH=/usr/local/lib:$LIBRARY_PATH
+    export TEMPO2=/usr/local/tempo2
+    export TEMPO2_CLOCK_DIR=/usr/local/tempo2/T2runtime
+    export TEMPO2_PATH=/usr/local/tempo2/T2runtime
+    export TEMPO2_PLUGIN_PATH=/usr/local/tempo2/T2runtime/plugins
+    export PSRCHIVE_PATH=/usr/local/psrchive
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
+    export PGPLOT_DEV=/xs
+    export PGPLOT_BACKGROUND=white
+    export PGPLOT_FOREGROUND=black
+    export PGPLOT_INCLUDES=/usr/local/include
+    export PGPLOT_LIB=/usr/local/lib
+    export GIZA_LIBS="-lgiza"
+    export PGPLOT_TYPE=giza
+    export CERT_SOURCE='/etc/ssl/certs/ca-certificates.crt'
+    export MAMBA_USER=mambauser
+    export MAMBA_USER_ID=57439
+    export MAMBA_USER_GID=57439
+    export MAMBA_USER=$MAMBA_USER
+    export MAMBA_USER_ID=$MAMBA_USER_ID
+    export MAMBA_USER_GID=$MAMBA_USER_GID
+    export LANG=C.UTF-8 LC_ALL=C.UTF-8
+    export ENV_NAME="base"
+    export MAMBA_ROOT_PREFIX="/opt/mamba"
+    export MAMBA_EXE="/bin/micromamba"
+    export PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
+
+
+%post
+    export PATH=/usr/local/bin:$PATH
+    export CPATH=/usr/local/include:$CPATH
+    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+    export LIBRARY_PATH=/usr/local/lib:$LIBRARY_PATH
+    export TEMPO2=/usr/local/tempo2
+    export TEMPO2_CLOCK_DIR=/usr/local/tempo2/T2runtime
+    export TEMPO2_PATH=/usr/local/tempo2/T2runtime
+    export TEMPO2_PLUGIN_PATH=/usr/local/tempo2/T2runtime/plugins
+    export PSRCHIVE_PATH=/usr/local/psrchive
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
+    export MAMBA_ROOT_PREFIX=/usr/local/micromamba
+    export PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
+    export PGPLOT_DEV=/xs
+    export PGPLOT_BACKGROUND=white
+    export PGPLOT_FOREGROUND=black
+    export PGPLOT_INCLUDES=/usr/local/include
+    export PGPLOT_LIB=/usr/local/lib
+    export GIZA_LIBS="-lgiza"
+    export PGPLOT_TYPE=giza
+    export CERT_SOURCE='/etc/ssl/certs/ca-certificates.crt'
+    export MAMBA_USER=mambauser
+    export MAMBA_USER_ID=57439
+    export MAMBA_USER_GID=57439
+    export MAMBA_USER=$MAMBA_USER
+    export MAMBA_USER_ID=$MAMBA_USER_ID
+    export MAMBA_USER_GID=$MAMBA_USER_GID
+    export LANG=C.UTF-8 LC_ALL=C.UTF-8
+    export ENV_NAME="base"
+    export MAMBA_ROOT_PREFIX="/opt/mamba"
+    export MAMBA_EXE="/opt/mamba/bin/micromamba"
+    export PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
+    
+    # Install Micromamba
+    micromamba install -y -n base -c pytorch -c nvidia -c conda-forge \
+					optuna
+
+        
+    micromamba clean --all -y
+
+    apt-get clean
+    apt-get -y autoremove
+

@@ -1,13 +1,26 @@
 Bootstrap: docker
-From: mambaorg/micromamba:2.0.6
+From: mambaorg/micromamba:2.6.1
 
 %labels
     org.opencontainers.image.source https://github.com/golamshaifullah/psrall_containers
-    org.opencontainers.image.description psrbase with Tempo2, PGPLOT, HDF5, and CFITSIO
-    org.opencontainers.image.licenses MIT
+    org.opencontainers.image.description psrbase with real PGPLOT, CFITSIO 4.6.4, HDF5, and Tempo2
 
 %environment
     export INSTALL_DIR=/usr/local
+
+    export PATH=/usr/local/bin:/opt/mamba/bin:$PATH
+    export CPATH=/usr/local/include:/usr/local/pgplot:$CPATH
+    export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:/opt/mamba/lib:$LD_LIBRARY_PATH
+    export LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:$LIBRARY_PATH
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/hdf5/lib/pkgconfig:$PKG_CONFIG_PATH
+
+    export TEMPO2=/usr/local/tempo2
+    export TEMPO2_CLOCK_DIR=/usr/local/tempo2/T2runtime
+    export TEMPO2_PATH=/usr/local/tempo2/T2runtime
+    export TEMPO2_PLUGIN_PATH=/usr/local/tempo2/T2runtime/plugins
+
+    export PSRCHIVE_PATH=/usr/local/psrchive
+    export PSRCHIVE_CONFIG=/usr/local/etc/psrchive.cfg
 
     export PGPLOT_DIR=/usr/local/pgplot
     export PGPLOT_FONT=/usr/local/pgplot/grfont.dat
@@ -18,20 +31,7 @@ From: mambaorg/micromamba:2.0.6
     export PGPLOT_LIB=/usr/local/pgplot
     export PGPLOT_TYPE=pgplot
 
-    export PATH=/usr/local/bin:/opt/mamba/bin:$PATH
-    export CPATH=/usr/local/include:/usr/local/pgplot:$CPATH
-    export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:$LD_LIBRARY_PATH
-    export LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:$LIBRARY_PATH
-    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/hdf5/lib/pkgconfig:$PKG_CONFIG_PATH
-
-    export TEMPO2=/usr/local/tempo2
-    export TEMPO2_CLOCK_DIR=/usr/local/tempo2/T2runtime
-    export TEMPO2_PATH=/usr/local/tempo2/T2runtime
-    export TEMPO2_PLUGIN_PATH=/usr/local/tempo2/T2runtime/plugins
-
-    export PSRCHIVE_PATH=/usr/local/psrchive
     export CERT_SOURCE=/etc/ssl/certs/ca-certificates.crt
-
     export MAMBA_USER=mambauser
     export MAMBA_USER_ID=57439
     export MAMBA_USER_GID=57439
@@ -41,13 +41,29 @@ From: mambaorg/micromamba:2.0.6
     export MAMBA_ROOT_PREFIX=/opt/mamba
     export MAMBA_EXE=/bin/micromamba
 
+
 %post
     set -eux
 
     export DEBIAN_FRONTEND=noninteractive
-    export INSTALL_DIR=/usr/local
     export CFITSIO_VERSION=4.6.4
     export HDF5_VERSION=1.14.6
+
+    export INSTALL_DIR=/usr/local
+
+    export PATH=/usr/local/bin:/opt/mamba/bin:$PATH
+    export CPATH=/usr/local/include:/usr/local/pgplot:${CPATH:-}
+    export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:/opt/mamba/lib:${LD_LIBRARY_PATH:-}
+    export LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:${LIBRARY_PATH:-}
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH:-}
+
+    export TEMPO2=/usr/local/tempo2
+    export TEMPO2_CLOCK_DIR=${TEMPO2}/T2runtime
+    export TEMPO2_PATH=${TEMPO2}/T2runtime
+    export TEMPO2_PLUGIN_PATH=${TEMPO2}/T2runtime/plugins
+
+    export PSRCHIVE_PATH=/usr/local/psrchive
+    export PSRCHIVE_CONFIG=/usr/local/etc/psrchive.cfg
 
     export PGPLOT_DIR=/usr/local/pgplot
     export PGPLOT_FONT=${PGPLOT_DIR}/grfont.dat
@@ -58,16 +74,13 @@ From: mambaorg/micromamba:2.0.6
     export PGPLOT_LIB=${PGPLOT_DIR}
     export PGPLOT_TYPE=pgplot
 
-    export PATH=/usr/local/bin:/opt/mamba/bin:$PATH
-    export CPATH=/usr/local/include:${PGPLOT_DIR}:${CPATH:-}
-    export LD_LIBRARY_PATH=/usr/local/lib:${PGPLOT_DIR}:/usr/local/hdf5/lib:${LD_LIBRARY_PATH:-}
-    export LIBRARY_PATH=/usr/local/lib:${PGPLOT_DIR}:/usr/local/hdf5/lib:${LIBRARY_PATH:-}
-    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH:-}
+    export CERT_SOURCE=/etc/ssl/certs/ca-certificates.crt
+    export MAMBA_ROOT_PREFIX=/opt/mamba
+    export MAMBA_EXE=/bin/micromamba
+    export ENV_NAME=base
+    export LANG=C.UTF-8
+    export LC_ALL=C.UTF-8
 
-    export TEMPO2=/usr/local/tempo2
-    export TEMPO2_CLOCK_DIR=${TEMPO2}/T2runtime
-    export TEMPO2_PATH=${TEMPO2}/T2runtime
-    export TEMPO2_PLUGIN_PATH=${TEMPO2}/T2runtime/plugins
 
     apt-get update
     apt-get install -y --no-install-recommends \
@@ -76,9 +89,9 @@ From: mambaorg/micromamba:2.0.6
         wget \
         git \
         build-essential \
-        gfortran \
         gcc \
         g++ \
+        gfortran \
         make \
         cmake \
         automake \
@@ -87,6 +100,7 @@ From: mambaorg/micromamba:2.0.6
         autoconf-archive \
         pkg-config \
         perl \
+        m4 \
         zlib1g-dev \
         libbz2-dev \
         libssl-dev \
@@ -115,11 +129,11 @@ From: mambaorg/micromamba:2.0.6
         liblapack-dev
     rm -rf /var/lib/apt/lists/*
 
-    mkdir -p ${INSTALL_DIR}/src
+    mkdir -p /usr/local/src
 
-    # -------------------------------------------------------------------------
-    # PGPLOT: original PGPLOT, not GIZA.
-    # -------------------------------------------------------------------------
+    # ----------------------------------------------------------------------
+    # PGPLOT 5.2.2. Use the original PGPLOT build system; do not install the legacy compatibility backend.
+    # ----------------------------------------------------------------------
     cd /tmp
     curl -fL --retry 3 -o pgplot5.2.tar.gz \
         ftp://ftp.astro.caltech.edu/pub/pgplot/pgplot5.2.tar.gz
@@ -129,10 +143,6 @@ From: mambaorg/micromamba:2.0.6
     cp /tmp/pgplot/drivers.list ${PGPLOT_DIR}/drivers.list
 
     cd ${PGPLOT_DIR}
-
-    # Enable core drivers: NULL, PostScript, color PostScript, vertical variants,
-    # XWINDOW and XSERVE. Avoid PNG by default because old PGPLOT PNG code is
-    # brittle against modern libpng.
     sed -i -E \
         -e '/\/NULL/ s/^!//' \
         -e '/\/PS/ s/^!//' \
@@ -145,11 +155,12 @@ From: mambaorg/micromamba:2.0.6
 
     /tmp/pgplot/makemake /tmp/pgplot linux g77_gcc
 
-    # Make the old linux/g77_gcc target usable with modern gfortran.
     sed -i \
         -e 's/^FCOMPL=.*/FCOMPL=gfortran/' \
-        -e 's/^FFLAGC=.*/FFLAGC=-ffixed-form -ffixed-line-length-none -u -Wall -fPIC -O2/' \
-        -e 's/^FFLAGD=.*/FFLAGD=-ffixed-form -ffixed-line-length-none -fPIC -O2/' \
+        -e 's/^FFLAGC=.*/FFLAGC=-ffixed-form -ffixed-line-length-none -fallow-argument-mismatch -u -Wall -fPIC -O2/' \
+        -e 's/^FFLAGD=.*/FFLAGD=-ffixed-form -ffixed-line-length-none -fallow-argument-mismatch -fPIC -O2/' \
+        -e 's/^CFLAGC=.*/CFLAGC=-Wall -fPIC -O2/' \
+        -e 's/^CFLAGD=.*/CFLAGD=-Wall -fPIC -O2/' \
         -e 's|-I/usr/X11R6/include|-I/usr/include|g' \
         -e 's|-L/usr/X11R6/lib|-L/usr/lib/x86_64-linux-gnu|g' \
         -e 's/-lg2c/-lgfortran/g' \
@@ -160,21 +171,18 @@ From: mambaorg/micromamba:2.0.6
 
     ln -sf ${PGPLOT_DIR}/libpgplot.a /usr/local/lib/libpgplot.a
     ln -sf ${PGPLOT_DIR}/libcpgplot.a /usr/local/lib/libcpgplot.a
-    if [ -f ${PGPLOT_DIR}/libpgplot.so ]; then
-        ln -sf ${PGPLOT_DIR}/libpgplot.so /usr/local/lib/libpgplot.so
-    fi
     ln -sf ${PGPLOT_DIR}/cpgplot.h /usr/local/include/cpgplot.h
     ln -sf ${PGPLOT_DIR}/pgxwin_server /usr/local/bin/pgxwin_server || true
 
-    echo "/usr/local/lib" > /etc/ld.so.conf.d/local.conf
-    echo "${PGPLOT_DIR}" > /etc/ld.so.conf.d/pgplot.conf
+    echo /usr/local/lib > /etc/ld.so.conf.d/local.conf
+    echo ${PGPLOT_DIR} > /etc/ld.so.conf.d/pgplot.conf
     ldconfig
 
     rm -rf /tmp/pgplot /tmp/pgplot5.2.tar.gz
 
-    # -------------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     # HDF5
-    # -------------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     cd /tmp
     curl -fL --retry 3 -o hdf5-${HDF5_VERSION}.tar.gz \
         https://support.hdfgroup.org/releases/hdf5/v1_14/v1_14_6/downloads/hdf5-${HDF5_VERSION}.tar.gz
@@ -185,13 +193,13 @@ From: mambaorg/micromamba:2.0.6
         --enable-cxx \
         --enable-fortran \
         --enable-profiling=yes
-    make -j"$(nproc)"
+    make -j$(nproc)
     make install
     rm -rf /tmp/hdf5-${HDF5_VERSION} /tmp/hdf5-${HDF5_VERSION}.tar.gz
 
-    # -------------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     # CFITSIO
-    # -------------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     cd /tmp
     curl -fL --retry 3 -o cfitsio-${CFITSIO_VERSION}.tar.gz \
         https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio-${CFITSIO_VERSION}.tar.gz
@@ -201,24 +209,25 @@ From: mambaorg/micromamba:2.0.6
         --prefix=/usr/local \
         --enable-reentrant \
         --enable-sse2
-    make -j"$(nproc)"
+    make -j$(nproc)
     make install
     ldconfig
     rm -rf /tmp/cfitsio-${CFITSIO_VERSION} /tmp/cfitsio-${CFITSIO_VERSION}.tar.gz
 
-    # -------------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     # Tempo2
-    # -------------------------------------------------------------------------
+    # ----------------------------------------------------------------------
     cd /tmp
     rm -rf /tmp/tempo2
-    git clone https://bitbucket.org/psrsoft/tempo2.git
+    git clone --depth 1 https://bitbucket.org/psrsoft/tempo2.git
     cd tempo2
 
     export F77=gfortran
     export FC=gfortran
+    export CFLAGS="-I${PGPLOT_DIR} -I/usr/local/include -fPIC ${CFLAGS:-}"
+    export CXXFLAGS="-I${PGPLOT_DIR} -I/usr/local/include -fPIC ${CXXFLAGS:-}"
+    export FFLAGS="-fPIC -fallow-argument-mismatch ${FFLAGS:-}"
     export LDFLAGS="-L${PGPLOT_DIR} -L/usr/local/lib -Wl,-rpath,${PGPLOT_DIR} -Wl,-rpath,/usr/local/lib ${LDFLAGS:-}"
-    export CFLAGS="-I${PGPLOT_DIR} -I/usr/local/include ${CFLAGS:-}"
-    export CPPFLAGS="${CFLAGS}"
 
     ./bootstrap
     ./configure \
@@ -234,16 +243,22 @@ From: mambaorg/micromamba:2.0.6
         F77=gfortran \
         FC=gfortran
 
-    make -j"$(nproc)"
+    make -j$(nproc)
     make install
     make plugins-install
+
     mkdir -p ${TEMPO2}/T2runtime
     cp -r T2runtime/* ${TEMPO2}/T2runtime/
     rm -rf /tmp/tempo2
 
-    # Sanity checks.
-    test -f ${PGPLOT_DIR}/libpgplot.a
-    test -f ${PGPLOT_DIR}/libcpgplot.a
-    test -f ${PGPLOT_DIR}/grfont.dat
-    [ -e /usr/local/lib/libcfitsio.so ] || [ -e /usr/local/lib/libcfitsio.a ]
-    command -v ${TEMPO2}/bin/tempo2 || true
+    ldconfig
+
+%test
+    test -f /usr/local/pgplot/libpgplot.a
+    test -f /usr/local/pgplot/libcpgplot.a
+    test -f /usr/local/pgplot/grfont.dat
+    test -e /usr/local/lib/libcfitsio.a -o -e /usr/local/lib/libcfitsio.so
+    test -d /usr/local/tempo2/T2runtime
+
+%help
+    Base pulsar-analysis image with real PGPLOT, CFITSIO 4.6.4, HDF5, and Tempo2.

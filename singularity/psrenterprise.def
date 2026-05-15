@@ -1,104 +1,193 @@
-BootStrap: localimage
+Bootstrap: localimage
 From: psrbase.sif
 
+%arguments
+    PINT_PAL_REF=v0.4.1
+    ENTERPRISE_OUTLIERS_REF=v1.0.1
+    ENTERPRISE_WARP_REF=master
+    MAPS_REF=main
+
+%labels
+    org.opencontainers.image.source https://github.com/golamshaifullah/psrall_containers
+    org.opencontainers.image.description Enterprise/PTA Python layer built on psrbase
 
 %environment
-    export PATH=/usr/local/bin:$PATH
-    export CPATH=/usr/local/include:$CPATH
-    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-    export LIBRARY_PATH=/usr/local/lib:$LIBRARY_PATH
+    export INSTALL_DIR=/usr/local
+
+    export PATH=/usr/local/bin:/opt/mamba/bin:$PATH
+    export CPATH=/usr/local/include:/usr/local/pgplot:$CPATH
+    export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:/opt/mamba/lib:$LD_LIBRARY_PATH
+    export LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:$LIBRARY_PATH
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/hdf5/lib/pkgconfig:$PKG_CONFIG_PATH
+
     export TEMPO2=/usr/local/tempo2
     export TEMPO2_CLOCK_DIR=/usr/local/tempo2/T2runtime
     export TEMPO2_PATH=/usr/local/tempo2/T2runtime
     export TEMPO2_PLUGIN_PATH=/usr/local/tempo2/T2runtime/plugins
+
     export PSRCHIVE_PATH=/usr/local/psrchive
-    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
+    export PSRCHIVE_CONFIG=/usr/local/etc/psrchive.cfg
+
+    export PGPLOT_DIR=/usr/local/pgplot
+    export PGPLOT_FONT=/usr/local/pgplot/grfont.dat
     export PGPLOT_DEV=/xs
     export PGPLOT_BACKGROUND=white
     export PGPLOT_FOREGROUND=black
-    export PGPLOT_INCLUDES=/usr/local/include
-    export PGPLOT_LIB=/usr/local/lib
-    export GIZA_LIBS="-lgiza"
-    export PGPLOT_TYPE=giza
-    export CERT_SOURCE='/etc/ssl/certs/ca-certificates.crt'
+    export PGPLOT_INCLUDES=/usr/local/pgplot
+    export PGPLOT_LIB=/usr/local/pgplot
+    export PGPLOT_TYPE=pgplot
+
+    export CERT_SOURCE=/etc/ssl/certs/ca-certificates.crt
     export MAMBA_USER=mambauser
     export MAMBA_USER_ID=57439
     export MAMBA_USER_GID=57439
-    export MAMBA_USER=$MAMBA_USER
-    export MAMBA_USER_ID=$MAMBA_USER_ID
-    export MAMBA_USER_GID=$MAMBA_USER_GID
-    export LANG=C.UTF-8 LC_ALL=C.UTF-8
-    export ENV_NAME="base"
-    export MAMBA_ROOT_PREFIX="/opt/mamba"
-    export MAMBA_EXE="/bin/micromamba"
-    export PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
+    export LANG=C.UTF-8
+    export LC_ALL=C.UTF-8
+    export ENV_NAME=base
+    export MAMBA_ROOT_PREFIX=/opt/mamba
+    export MAMBA_EXE=/bin/micromamba
 
 
 %post
-    export PATH=/usr/local/bin:$PATH
-    export CPATH=/usr/local/include:$CPATH
-    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-    export LIBRARY_PATH=/usr/local/lib:$LIBRARY_PATH
+    set -eux
+
+    export INSTALL_DIR=/usr/local
+
+    export PATH=/usr/local/bin:/opt/mamba/bin:$PATH
+    export CPATH=/usr/local/include:/usr/local/pgplot:${CPATH:-}
+    export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:/opt/mamba/lib:${LD_LIBRARY_PATH:-}
+    export LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:${LIBRARY_PATH:-}
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH:-}
+
     export TEMPO2=/usr/local/tempo2
-    export TEMPO2_CLOCK_DIR=/usr/local/tempo2/T2runtime
-    export TEMPO2_PATH=/usr/local/tempo2/T2runtime
-    export TEMPO2_PLUGIN_PATH=/usr/local/tempo2/T2runtime/plugins
+    export TEMPO2_CLOCK_DIR=${TEMPO2}/T2runtime
+    export TEMPO2_PATH=${TEMPO2}/T2runtime
+    export TEMPO2_PLUGIN_PATH=${TEMPO2}/T2runtime/plugins
+
     export PSRCHIVE_PATH=/usr/local/psrchive
-    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
-    export MAMBA_ROOT_PREFIX=/usr/local/micromamba
-    export PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
+    export PSRCHIVE_CONFIG=/usr/local/etc/psrchive.cfg
+
+    export PGPLOT_DIR=/usr/local/pgplot
+    export PGPLOT_FONT=${PGPLOT_DIR}/grfont.dat
     export PGPLOT_DEV=/xs
     export PGPLOT_BACKGROUND=white
     export PGPLOT_FOREGROUND=black
-    export PGPLOT_INCLUDES=/usr/local/include
-    export PGPLOT_LIB=/usr/local/lib
-    export GIZA_LIBS="-lgiza"
-    export PGPLOT_TYPE=giza
-    export CERT_SOURCE='/etc/ssl/certs/ca-certificates.crt'
-    export MAMBA_USER=mambauser
-    export MAMBA_USER_ID=57439
-    export MAMBA_USER_GID=57439
-    export MAMBA_USER=$MAMBA_USER
-    export MAMBA_USER_ID=$MAMBA_USER_ID
-    export MAMBA_USER_GID=$MAMBA_USER_GID
-    export LANG=C.UTF-8 LC_ALL=C.UTF-8
-    export ENV_NAME="base"
-    export MAMBA_ROOT_PREFIX="/opt/mamba"
-    export MAMBA_EXE="/opt/mamba/bin/micromamba"
-    export PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
-    
-    # Install Micromamba
+    export PGPLOT_INCLUDES=${PGPLOT_DIR}
+    export PGPLOT_LIB=${PGPLOT_DIR}
+    export PGPLOT_TYPE=pgplot
+
+    export CERT_SOURCE=/etc/ssl/certs/ca-certificates.crt
+    export MAMBA_ROOT_PREFIX=/opt/mamba
+    export MAMBA_EXE=/bin/micromamba
+    export ENV_NAME=base
+    export LANG=C.UTF-8
+    export LC_ALL=C.UTF-8
+
+
     micromamba install -y -n base -c conda-forge \
-        python=3.11 bokeh bottleneck corner cycler cython dask docutils acor>=1.1.1 astropy astroquery ephem \
-	libblas[build=*mkl] libstempo marshmallow matplotlib mpfr mpi4py nose notebook numba numexpr numpy pandas patsy \
-	fitsio gitpython gmp h5py healpy imagecodecs imageio ipympl ipython jplephem jupyter jupyter_contrib_nbextensions \
-	pyregion pytables pytest pytest-xdist  pytz pywavelets pyyaml ruamel.yaml scikit-image scikit-learn scikit-sparse scipy \
-	seaborn seaborn-base setuptools six statsmodels suitesparse tifffile vincent wand yt  \
-	bilby enterprise-pulsar enterprise_extensions enterprise_outliers la_forge \
-	pint-pal>=0.1.0 pint-pulsar>=0.9 psrqpy ptmcmcsampler pyerfa pymultinest>=2.11 pypulse>=0.1.1
-  
-    pip3 install --no-cache-dir \
-        h5py paramz astroplan peakutils datetime bitstring astropy_helpers pyephem APLpy astroquery lmfit healpy corner line_profiler jplephem
-        
-    #jupyter contrib nbextension install --user
+        python=3.11 \
+        pip \
+        bokeh \
+        bottleneck \
+        corner \
+        cycler \
+        cython \
+        dask \
+        docutils \
+        acor \
+        astropy \
+        astroquery \
+        ephem \
+        libstempo \
+        marshmallow \
+        matplotlib \
+        mpfr \
+        mpi4py \
+        notebook \
+        numba \
+        numexpr \
+        numpy \
+        pandas \
+        patsy \
+        fitsio \
+        gitpython \
+        gmp \
+        h5py \
+        healpy \
+        imagecodecs \
+        imageio \
+        ipympl \
+        ipython \
+        jplephem \
+        jupyter \
+        pyregion \
+        pytables \
+        pytest \
+        pytest-xdist \
+        pytz \
+        pywavelets \
+        pyyaml \
+        ruamel.yaml \
+        scikit-image \
+        scikit-learn \
+        scikit-sparse \
+        scipy \
+        seaborn \
+        setuptools \
+        six \
+        statsmodels \
+        suitesparse \
+        tifffile \
+        wand \
+        yt \
+        bilby \
+        enterprise-pulsar \
+        enterprise_extensions \
+        la_forge \
+        pint-pulsar \
+        psrqpy \
+        ptmcmcsampler \
+        pyerfa \
+        pymultinest \
+        pypulse
+
+    python -m pip install --no-cache-dir \
+        paramz \
+        astroplan \
+        peakutils \
+        bitstring \
+        astropy-helpers \
+        pyephem \
+        APLpy \
+        lmfit \
+        line_profiler \
+        fastshermanmorrison-pulsar \
+        git+https://github.com/nanograv/pint_pal.git@{{ PINT_PAL_REF }} \
+        git+https://github.com/nanograv/enterprise_outliers.git@{{ ENTERPRISE_OUTLIERS_REF }} \
+        git+https://github.com/bvgoncharov/enterprise_warp.git@{{ ENTERPRISE_WARP_REF }} \
+        git+https://github.com/NihanPol/MAPS.git@{{ MAPS_REF }}
+
     micromamba clean --all -y
-
-    pip install git+https://github.com/nanograv/PINT@master
-    pip install git+https://github.com/vallis/libstempo@master
-    pip install git+https://github.com/nanograv/enterprise@dev
-    pip install git+https://github.com/nanograv/enterprise_extensions@dcbusyweek
-    pip install git+https://github.com/nanograv/pint_pal@main
-    pip install git+https://github.com/nanograv/enterprise@dev
-    pip install git+https://github.com/nanograv/enterprise_extensions@dcbusyweek
-    pip install git+https://github.com/bvgoncharov/enterprise_warp
-    pip install git+https://github.com/nanograv/fastshermanmorrison.git
-    pip install git+https://github.com/NihanPol/MAPS.git@main
-
     apt-get clean
-    apt-get -y autoremove
+    apt-get -y autoremove || true
 
-    ## in lieu of real tests; and to plug in the 'latest' astropy cache at build time
-    python -c "from astropy.time import Time; t=Time.now(); t.ut1; from astropy.utils.data import get_pkg_data_contents; get_pkg_data_contents(\"coordinates/sites-un-ascii\"); from astropy.utils.iers import IERS_B_URL, IERS_B; from astropy.utils.data import download_file; IERS_B.open(download_file(IERS_B_URL, cache=True))[\"year\",\"month\",\"day\"][-3:]; from astropy.utils import iers; iers.conf.auto_max_age = None"
-    python -c "from enterprise.pulsar import Pulsar"
-    ls $(python -c "from astropy.config import get_config_dir; print(get_config_dir())")
-   
+    python - <<'PYTEST'
+from astropy.time import Time
+from astropy.utils import iers
+iers.conf.auto_max_age = None
+_ = Time.now().ut1
+from enterprise.pulsar import Pulsar
+import enterprise_extensions
+import pint
+PYTEST
+
+%test
+    python - <<'PYTEST'
+from enterprise.pulsar import Pulsar
+import enterprise_extensions
+import libstempo
+import pint
+PYTEST
+
+%help
+    Enterprise/PTA Python analysis layer. Git-only packages use templated refs; pass commit SHAs for strict reproducibility.

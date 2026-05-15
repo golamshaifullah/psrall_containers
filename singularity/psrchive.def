@@ -1,116 +1,174 @@
-BootStrap: localimage
-From: psrenterprise.sif
+Bootstrap: localimage
+From: psrbase.sif
 
+%labels
+    org.opencontainers.image.source https://github.com/golamshaifullah/psrall_containers
+    org.opencontainers.image.description PSRCHIVE layer built on psrbase with PGPLOT inherited from /usr/local/pgplot
 
 %environment
-    export INSTALL_DIR=/usr/local/
-    export PATH=/usr/local/bin:$PATH
-    export CPATH=/usr/local/include:$CPATH
-    export LD_LIBRARY_PATH=/usr/local/lib:/opt/mamba/lib/:$LD_LIBRARY_PATH
-    export LIBRARY_PATH=/usr/local/lib:$LIBRARY_PATH
+    export INSTALL_DIR=/usr/local
+
+    export PATH=/usr/local/bin:/opt/mamba/bin:$PATH
+    export CPATH=/usr/local/include:/usr/local/pgplot:$CPATH
+    export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:/opt/mamba/lib:$LD_LIBRARY_PATH
+    export LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:$LIBRARY_PATH
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/hdf5/lib/pkgconfig:$PKG_CONFIG_PATH
+
     export TEMPO2=/usr/local/tempo2
     export TEMPO2_CLOCK_DIR=/usr/local/tempo2/T2runtime
     export TEMPO2_PATH=/usr/local/tempo2/T2runtime
     export TEMPO2_PLUGIN_PATH=/usr/local/tempo2/T2runtime/plugins
+
     export PSRCHIVE_PATH=/usr/local/psrchive
-    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
+    export PSRCHIVE_CONFIG=/usr/local/etc/psrchive.cfg
+
+    export PGPLOT_DIR=/usr/local/pgplot
+    export PGPLOT_FONT=/usr/local/pgplot/grfont.dat
     export PGPLOT_DEV=/xs
     export PGPLOT_BACKGROUND=white
     export PGPLOT_FOREGROUND=black
-    export PGPLOT_INCLUDES=/usr/local/include
-    export PGPLOT_LIB=/usr/local/lib
-    export GIZA_LIBS="-lgiza"
-    export PGPLOT_TYPE=giza
-    export CERT_SOURCE='/etc/ssl/certs/ca-certificates.crt'
+    export PGPLOT_INCLUDES=/usr/local/pgplot
+    export PGPLOT_LIB=/usr/local/pgplot
+    export PGPLOT_TYPE=pgplot
+
+    export CERT_SOURCE=/etc/ssl/certs/ca-certificates.crt
     export MAMBA_USER=mambauser
     export MAMBA_USER_ID=57439
     export MAMBA_USER_GID=57439
-    export MAMBA_USER=$MAMBA_USER
-    export MAMBA_USER_ID=$MAMBA_USER_ID
-    export MAMBA_USER_GID=$MAMBA_USER_GID
-    export LANG=C.UTF-8 LC_ALL=C.UTF-8
-    export ENV_NAME="base"
-    export MAMBA_ROOT_PREFIX="/opt/mamba"
-    export MAMBA_EXE="/bin/micromamba"
-    export PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
+    export LANG=C.UTF-8
+    export LC_ALL=C.UTF-8
+    export ENV_NAME=base
+    export MAMBA_ROOT_PREFIX=/opt/mamba
+    export MAMBA_EXE=/bin/micromamba
 
 
 %post
-    export INSTALL_DIR=/usr/local/
-    export PATH=/usr/local/bin:$PATH
-    export CPATH=/usr/local/include:$CPATH
-    export LD_LIBRARY_PATH=/usr/local/lib:/opt/mamba/lib/:$LD_LIBRARY_PATH
-    export LIBRARY_PATH=/usr/local/lib:$LIBRARY_PATH
+    set -eux
+
+    export DEBIAN_FRONTEND=noninteractive
+    export NP=${NP:-$(nproc)}
+
+    export INSTALL_DIR=/usr/local
+
+    export PATH=/usr/local/bin:/opt/mamba/bin:$PATH
+    export CPATH=/usr/local/include:/usr/local/pgplot:${CPATH:-}
+    export LD_LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:/opt/mamba/lib:${LD_LIBRARY_PATH:-}
+    export LIBRARY_PATH=/usr/local/lib:/usr/local/pgplot:/usr/local/hdf5/lib:${LIBRARY_PATH:-}
+    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/hdf5/lib/pkgconfig:${PKG_CONFIG_PATH:-}
+
     export TEMPO2=/usr/local/tempo2
-    export TEMPO2_CLOCK_DIR=/usr/local/tempo2/T2runtime
-    export TEMPO2_PATH=/usr/local/tempo2/T2runtime
-    export TEMPO2_PLUGIN_PATH=/usr/local/tempo2/T2runtime/plugins
+    export TEMPO2_CLOCK_DIR=${TEMPO2}/T2runtime
+    export TEMPO2_PATH=${TEMPO2}/T2runtime
+    export TEMPO2_PLUGIN_PATH=${TEMPO2}/T2runtime/plugins
+
     export PSRCHIVE_PATH=/usr/local/psrchive
-    export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
-    export MAMBA_ROOT_PREFIX=/usr/local/micromamba
-    export PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
+    export PSRCHIVE_CONFIG=/usr/local/etc/psrchive.cfg
+
+    export PGPLOT_DIR=/usr/local/pgplot
+    export PGPLOT_FONT=${PGPLOT_DIR}/grfont.dat
     export PGPLOT_DEV=/xs
     export PGPLOT_BACKGROUND=white
     export PGPLOT_FOREGROUND=black
-    export PGPLOT_INCLUDES=/usr/local/include
-    export PGPLOT_LIB=/usr/local/lib
-    export GIZA_LIBS="-lgiza"
-    export PGPLOT_TYPE=giza
-    export CERT_SOURCE='/etc/ssl/certs/ca-certificates.crt'
-    export MAMBA_USER=mambauser
-    export MAMBA_USER_ID=57439
-    export MAMBA_USER_GID=57439
-    export MAMBA_USER=$MAMBA_USER
-    export MAMBA_USER_ID=$MAMBA_USER_ID
-    export MAMBA_USER_GID=$MAMBA_USER_GID
-    export LANG=C.UTF-8 LC_ALL=C.UTF-8
-    export ENV_NAME="base"
-    export MAMBA_ROOT_PREFIX="/opt/mamba"
-    export MAMBA_EXE="/opt/mamba/bin/micromamba"
-    export PATH=$MAMBA_ROOT_PREFIX/bin:$PATH
-    
+    export PGPLOT_INCLUDES=${PGPLOT_DIR}
+    export PGPLOT_LIB=${PGPLOT_DIR}
+    export PGPLOT_TYPE=pgplot
+
+    export CERT_SOURCE=/etc/ssl/certs/ca-certificates.crt
+    export MAMBA_ROOT_PREFIX=/opt/mamba
+    export MAMBA_EXE=/bin/micromamba
+    export ENV_NAME=base
+    export LANG=C.UTF-8
+    export LC_ALL=C.UTF-8
+
+
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        git \
+        build-essential \
+        gcc \
+        g++ \
+        gfortran \
+        make \
+        automake \
+        autoconf \
+        libtool \
+        autoconf-archive \
+        pkg-config \
+        libgsl-dev \
+        libxml2-dev
+    rm -rf /var/lib/apt/lists/*
+
     mkdir -p ${INSTALL_DIR}/src
 
-    apt-get install -y --no-install-recommends libgsl27 libgsl-dev
-    ln -s /usr/lib/x86_64-linux-gnu/libgsl.so /usr/lib/x86_64-linux-gnu/libgsl.so.25
-    
-#*******************
-#      EPSIC 
-#*******************
-%post
-    cd ${INSTALL_DIR}/src && git clone https://github.com/straten/epsic
-    cd epsic && cd src && ./bootstrap && ./configure CFLAGS=-fPIC FFLAGS=-fPIC --prefix=${INSTALL_DIR} --enable-shared
-    make -j${NP} && make install && make distclean
+    # EPSIC
+    cd ${INSTALL_DIR}/src
+    rm -rf epsic
+    git clone --depth 1 https://github.com/straten/epsic.git epsic
+    cd epsic/src
+    ./bootstrap
+    ./configure \
+        CFLAGS=-fPIC \
+        FFLAGS='-fPIC -fallow-argument-mismatch' \
+        --prefix=${INSTALL_DIR} \
+        --enable-shared
+    make -j${NP}
+    make install
+    make distclean || true
 
-#*******************
-#     PSRCHIVE
-#*******************
-%post
-    cd ${INSTALL_DIR}/src && git clone http://git.code.sf.net/p/psrchive/code psrchive
-    cd psrchive && ./bootstrap
-    ./configure PYTHON=/usr/bin/python3 --prefix=${INSTALL_DIR} --enable-shared --with-x \
-      --with-psrcat=psrcat --with-psrxml-dir=${INSTALL_DIR}/lib \
-      --with-eigen-include-dir=${INSTALL_DIR}/include/eigen3 --with-eigen-dir=${INSTALL_DIR}/src/eigen \
-      --with-splinter-dir=${INSTALL_DIR}/src/splinter
-    make -j${NP} && make install && make distclean
-    export PSRCHIVE_CONFIG=${INSTALL_DIR}/etc/psrchive.cfg
-    ls ${INSTALL_DIR}
-    ls ${INSTALL_DIR}/bin
-    
-    ${INSTALL_DIR}/bin/psrchive_config > $PSRCHIVE_CONFIG
-    sed -i 's/^Dispersion::barycentric_correction/#Dispersion::barycentric_correction/' $PSRCHIVE_CONFIG
-    sed -i '/^#.*Dispersion::barycentric_correction\ =/a Dispersion::barycentric_correction\ =\ 1' $PSRCHIVE_CONFIG
-    sed -i 's/^WeightedFrequency::round_to_kHz/#WeightedFrequency::round_to_kHz/' $PSRCHIVE_CONFIG
-    sed -i '/^#.*WeightedFrequency::round_to_kHz\ =/a WeightedFrequency::round_to_kHz\ =\ 0' $PSRCHIVE_CONFIG
-    sed -i 's/^Predictor::default/#Predictor::default/' $PSRCHIVE_CONFIG
-    sed -i '/^#.*Predictor::default\ =/a Predictor::default\ =\ tempo2' $PSRCHIVE_CONFIG
-    sed -i 's/^Predictor::policy/#Predictor::policy/' $PSRCHIVE_CONFIG
-    sed -i '/^#.*Predictor::policy\ =/a Predictor::policy\ =\ default' $PSRCHIVE_CONFIG
-    sed -i 's/^FrequencyAppend::weight/#FrequencyAppend::weight/' $PSRCHIVE_CONFIG
-    sed -i '/^#.*FrequencyAppend::weight\ =/a FrequencyAppend::weight\ =\ none' $PSRCHIVE_CONFIG
-    sed -i 's/^FrequencyAppend::force_new_predictor/#FrequencyAppend::force_new_predictor/' $PSRCHIVE_CONFIG
-    sed -i '/^#.*FrequencyAppend::force_new_predictor\ =/a FrequencyAppend::force_new_predictor\ =\ 1' $PSRCHIVE_CONFIG
-    sed -i 's/^ArrivalTime::default_format/#ArrivalTime::default_format/' $PSRCHIVE_CONFIG
-    sed -i '/^#.*ArrivalTime::default_format\ =/a ArrivalTime::default_format\ =\ Tempo2' $PSRCHIVE_CONFIG
+    # PSRCHIVE
+    cd ${INSTALL_DIR}/src
+    rm -rf psrchive
+    git clone --depth 1 https://git.code.sf.net/p/psrchive/code psrchive
+    cd psrchive
+    ./bootstrap
 
+    export F77=gfortran
+    export FC=gfortran
+    export CFLAGS="-fPIC -I${PGPLOT_DIR} -I/usr/local/include ${CFLAGS:-}"
+    export CXXFLAGS="-fPIC -I${PGPLOT_DIR} -I/usr/local/include ${CXXFLAGS:-}"
+    export FFLAGS="-fPIC -fallow-argument-mismatch ${FFLAGS:-}"
+    export LDFLAGS="-L${PGPLOT_DIR} -L/usr/local/lib -Wl,-rpath,${PGPLOT_DIR} -Wl,-rpath,/usr/local/lib ${LDFLAGS:-}"
 
+    ./configure \
+        PYTHON=/usr/bin/python3 \
+        --prefix=${INSTALL_DIR} \
+        --enable-shared \
+        --with-x \
+        --with-cfitsio-dir=/usr/local \
+        --with-fftw3-dir=/usr \
+        --with-eigen-include-dir=/usr/include/eigen3 \
+        F77=gfortran \
+        FC=gfortran
+
+    make -j${NP}
+    make install
+    make distclean || true
+
+    mkdir -p $(dirname ${PSRCHIVE_CONFIG})
+    ${INSTALL_DIR}/bin/psrchive_config > ${PSRCHIVE_CONFIG}
+
+    sed -i 's/^Dispersion::barycentric_correction/#Dispersion::barycentric_correction/' ${PSRCHIVE_CONFIG} || true
+    sed -i '/^#.*Dispersion::barycentric_correction *=/a Dispersion::barycentric_correction = 1' ${PSRCHIVE_CONFIG} || true
+    sed -i 's/^WeightedFrequency::round_to_kHz/#WeightedFrequency::round_to_kHz/' ${PSRCHIVE_CONFIG} || true
+    sed -i '/^#.*WeightedFrequency::round_to_kHz *=/a WeightedFrequency::round_to_kHz = 0' ${PSRCHIVE_CONFIG} || true
+    sed -i 's/^Predictor::default/#Predictor::default/' ${PSRCHIVE_CONFIG} || true
+    sed -i '/^#.*Predictor::default *=/a Predictor::default = tempo2' ${PSRCHIVE_CONFIG} || true
+    sed -i 's/^Predictor::policy/#Predictor::policy/' ${PSRCHIVE_CONFIG} || true
+    sed -i '/^#.*Predictor::policy *=/a Predictor::policy = default' ${PSRCHIVE_CONFIG} || true
+    sed -i 's/^FrequencyAppend::weight/#FrequencyAppend::weight/' ${PSRCHIVE_CONFIG} || true
+    sed -i '/^#.*FrequencyAppend::weight *=/a FrequencyAppend::weight = none' ${PSRCHIVE_CONFIG} || true
+    sed -i 's/^FrequencyAppend::force_new_predictor/#FrequencyAppend::force_new_predictor/' ${PSRCHIVE_CONFIG} || true
+    sed -i '/^#.*FrequencyAppend::force_new_predictor *=/a FrequencyAppend::force_new_predictor = 1' ${PSRCHIVE_CONFIG} || true
+    sed -i 's/^ArrivalTime::default_format/#ArrivalTime::default_format/' ${PSRCHIVE_CONFIG} || true
+    sed -i '/^#.*ArrivalTime::default_format *=/a ArrivalTime::default_format = Tempo2' ${PSRCHIVE_CONFIG} || true
+
+    ldconfig
+
+%test
+    test -x /usr/local/bin/psrchive_config
+    test -f /usr/local/etc/psrchive.cfg
+    /usr/local/bin/psrchive_config >/dev/null
+
+%help
+    PSRCHIVE layer. Build this after psrbase.sif.

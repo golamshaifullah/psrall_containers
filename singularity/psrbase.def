@@ -129,56 +129,51 @@ From: mambaorg/micromamba:2.6.1
         liblapack-dev
     rm -rf /var/lib/apt/lists/*
 
-    mkdir -p /usr/local/src
+    # -------------------------------------------------------------------------
+    # PGPLOT
+    #
+    # Use distro-packaged PGPLOT instead of compiling the old upstream source.
+    # Debian packages include:
+    #   /usr/lib/libpgplot.*
+    #   /usr/lib/libcpgplot.*
+    #   /usr/include/cpgplot.h
+    #   /usr/lib/pgplot5/grfont.dat
+    #   /usr/bin/pgxwin_server
+    # -------------------------------------------------------------------------
 
-    # ----------------------------------------------------------------------
-    # PGPLOT 5.2.2. Use the original PGPLOT build system; do not install the legacy compatibility backend.
-    # ----------------------------------------------------------------------
-    cd /tmp
-    curl -fL --retry 3 -o pgplot5.2.tar.gz \
-        ftp://ftp.astro.caltech.edu/pub/pgplot/pgplot5.2.tar.gz
-    tar -xzf pgplot5.2.tar.gz
+    . /etc/os-release
 
-    mkdir -p ${PGPLOT_DIR}
-    cp /tmp/pgplot/drivers.list ${PGPLOT_DIR}/drivers.list
+    if [ -f /etc/apt/sources.list.d/debian.sources ]; then
+        sed -i -E 's/Components: main$/Components: main contrib non-free non-free-firmware/' \
+            /etc/apt/sources.list.d/debian.sources
+    elif [ -f /etc/apt/sources.list ]; then
+        sed -i -E 's/ main$/ main contrib non-free non-free-firmware/g' \
+            /etc/apt/sources.list
+    fi
 
-    cd ${PGPLOT_DIR}
-    sed -i -E \
-        -e '/\/NULL/ s/^!//' \
-        -e '/\/PS/ s/^!//' \
-        -e '/\/VPS/ s/^!//' \
-        -e '/\/CPS/ s/^!//' \
-        -e '/\/VCPS/ s/^!//' \
-        -e '/\/XWINDOW/ s/^!//' \
-        -e '/\/XSERVE/ s/^!//' \
-        drivers.list
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        pgplot5 \
+        gfortran \
+        libx11-dev \
+        libxt-dev \
+        libpng-dev \
+        zlib1g-dev
 
-    /tmp/pgplot/makemake /tmp/pgplot linux g77_gcc
+    ln -sf /usr/lib/libpgplot.so /usr/local/lib/libpgplot.so
+    ln -sf /usr/lib/libpgplot.a /usr/local/lib/libpgplot.a
+    ln -sf /usr/lib/libcpgplot.so /usr/local/lib/libcpgplot.so
+    ln -sf /usr/lib/libcpgplot.a /usr/local/lib/libcpgplot.a
+    ln -sf /usr/include/cpgplot.h /usr/local/include/cpgplot.h
 
-    sed -i \
-        -e 's/^FCOMPL=.*/FCOMPL=gfortran/' \
-        -e 's/^FFLAGC=.*/FFLAGC=-ffixed-form -ffixed-line-length-none -fallow-argument-mismatch -u -Wall -fPIC -O2/' \
-        -e 's/^FFLAGD=.*/FFLAGD=-ffixed-form -ffixed-line-length-none -fallow-argument-mismatch -fPIC -O2/' \
-        -e 's/^CFLAGC=.*/CFLAGC=-Wall -fPIC -O2/' \
-        -e 's/^CFLAGD=.*/CFLAGD=-Wall -fPIC -O2/' \
-        -e 's|-I/usr/X11R6/include|-I/usr/include|g' \
-        -e 's|-L/usr/X11R6/lib|-L/usr/lib/x86_64-linux-gnu|g' \
-        -e 's/-lg2c/-lgfortran/g' \
-        makefile
+    mkdir -p /usr/local/pgplot
+    ln -sf /usr/lib/pgplot5/grfont.dat /usr/local/pgplot/grfont.dat
+    ln -sf /usr/lib/pgplot5/rgb.txt /usr/local/pgplot/rgb.txt
+    ln -sf /usr/bin/pgxwin_server /usr/local/pgplot/pgxwin_server
 
-    make
-    make cpg
-
-    ln -sf ${PGPLOT_DIR}/libpgplot.a /usr/local/lib/libpgplot.a
-    ln -sf ${PGPLOT_DIR}/libcpgplot.a /usr/local/lib/libcpgplot.a
-    ln -sf ${PGPLOT_DIR}/cpgplot.h /usr/local/include/cpgplot.h
-    ln -sf ${PGPLOT_DIR}/pgxwin_server /usr/local/bin/pgxwin_server || true
-
-    echo /usr/local/lib > /etc/ld.so.conf.d/local.conf
-    echo ${PGPLOT_DIR} > /etc/ld.so.conf.d/pgplot.conf
+    echo "/usr/local/lib" > /etc/ld.so.conf.d/local.conf
+    echo "/usr/lib" > /etc/ld.so.conf.d/pgplot.conf
     ldconfig
-
-    rm -rf /tmp/pgplot /tmp/pgplot5.2.tar.gz
 
     # ----------------------------------------------------------------------
     # HDF5

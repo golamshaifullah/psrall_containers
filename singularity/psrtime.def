@@ -22,12 +22,9 @@ From: psrbase.sif
 
 %post
     set -eux
+    unset MAKEFLAGS MFLAGS MAKELEVEL GNUMAKEFLAGS MAKEOVERRIDES
+    export MAKE=make
     # This layer intentionally does not invoke micromamba. It exists as a named
     # timing runtime image derived from psrbase.
-    test -x /usr/local/tempo2/bin/tempo2
-    test -d /usr/local/tempo2/T2runtime
-
-%test
-    set -eu
     test -x /usr/local/tempo2/bin/tempo2
     test -d /usr/local/tempo2/T2runtime

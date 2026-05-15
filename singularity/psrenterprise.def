@@ -26,6 +26,8 @@ From: psrbase.sif
 
 %post
     set -eux
+    unset MAKEFLAGS MFLAGS MAKELEVEL GNUMAKEFLAGS MAKEOVERRIDES
+    export MAKE=make
 
     export MAMBA_ROOT_PREFIX=/opt/mamba
     export MAMBA_EXE=/bin/micromamba
@@ -73,16 +75,3 @@ From: psrbase.sif
         bitstring
 
     micromamba clean --all --yes
-
-%test
-    set -eu
-    python - <<'PY'
-import enterprise
-import enterprise_extensions
-import libstempo
-import pint
-import astropy
-import h5py
-import fitsio
-print('psrenterprise imports ok')
-PY

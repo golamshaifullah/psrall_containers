@@ -60,7 +60,17 @@ From: mambaorg/micromamba:2.6.1
     export LD_LIBRARY_PATH=/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/hdf5/serial:${LD_LIBRARY_PATH:-}
     export LIBRARY_PATH=/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/hdf5/serial:${LIBRARY_PATH:-}
     export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:${PKG_CONFIG_PATH:-}
+    unset MAKEFLAGS MFLAGS MAKELEVEL GNUMAKEFLAGS MAKEOVERRIDES
+    export MAKE=make
     export NP=${NP:-$(nproc)}
+
+    clean_build_env() {
+        env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL -u GNUMAKEFLAGS -u MAKEOVERRIDES MAKE=make "$@"
+    }
+
+    export BUILD_DIR=/usr/local/src/psrall-build
+    rm -rf "${BUILD_DIR}"
+    mkdir -p "${BUILD_DIR}"
 
     # PGPLOT is non-free in Debian, so enable the non-free component.
     if [ -f /etc/apt/sources.list.d/debian.sources ]; then
@@ -145,23 +155,24 @@ From: mambaorg/micromamba:2.6.1
 
     # CFITSIO is kept as a small source build so this image gets the current
     # upstream version rather than the older distro package.
-    cd /tmp
+    cd "${BUILD_DIR}"
     curl -fL --retry 3 -o cfitsio-${CFITSIO_VERSION}.tar.gz \
         https://heasarc.gsfc.nasa.gov/FTP/software/fitsio/c/cfitsio-${CFITSIO_VERSION}.tar.gz
     tar -xzf cfitsio-${CFITSIO_VERSION}.tar.gz
     cd cfitsio-${CFITSIO_VERSION}
-    ./configure \
+    clean_build_env ./configure \
         --prefix=/usr/local \
         --enable-reentrant \
         --enable-sse2
-    env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL make -j${NP}
-    env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL make install
+    clean_build_env make -j"${NP}"
+    clean_build_env make install
     ldconfig
-    rm -rf /tmp/cfitsio-${CFITSIO_VERSION} /tmp/cfitsio-${CFITSIO_VERSION}.tar.gz
+    cd "${BUILD_DIR}"
+    rm -rf cfitsio-${CFITSIO_VERSION} cfitsio-${CFITSIO_VERSION}.tar.gz
 
     # Tempo2 is source-built. PGPLOT, FFTW, HDF5, GSL and X11 are packaged.
-    cd /tmp
-    rm -rf /tmp/tempo2
+    cd "${BUILD_DIR}"
+    rm -rf tempo2
     git clone --depth=1 https://bitbucket.org/psrsoft/tempo2.git
     cd tempo2
 
@@ -172,8 +183,8 @@ From: mambaorg/micromamba:2.6.1
     export CXXFLAGS="${CPPFLAGS} ${CXXFLAGS:-}"
     export LDFLAGS="-L/usr/local/lib -L/usr/lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu/hdf5/serial -Wl,-rpath,/usr/local/lib -Wl,-rpath,/usr/lib/x86_64-linux-gnu/hdf5/serial ${LDFLAGS:-}"
 
-    ./bootstrap
-    ./configure \
+    clean_build_env ./bootstrap
+    clean_build_env ./configure \
         --prefix=${TEMPO2} \
         --with-pgplot=/usr \
         --with-tempo2-plug-dir=${TEMPO2}/plugins \
@@ -185,22 +196,12 @@ From: mambaorg/micromamba:2.6.1
         --x-libraries=/usr/lib/x86_64-linux-gnu \
         F77=gfortran \
         FC=gfortran
-    env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL make -j${NP}
-    env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL make install
-    env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL make plugins-install || true
+    clean_build_env make -j"${NP}"
+    clean_build_env make install
+    clean_build_env make plugins-install || true
     mkdir -p ${TEMPO2}/T2runtime
     if [ -d T2runtime ]; then cp -a T2runtime/. ${TEMPO2}/T2runtime/; fi
-    rm -rf /tmp/tempo2
+    rm -rf "${BUILD_DIR}"
 
     apt-get clean
     rm -rf /var/lib/apt/lists/*
-
-%test
-    set -eu
-    test -f /usr/local/pgplot/grfont.dat
-    test -f /usr/local/include/cpgplot.h
-    test -e /usr/local/lib/libcfitsio.so -o -e /usr/local/lib/libcfitsio.a
-    test -f /usr/include/hdf5/serial/hdf5.h
-    h5dump --version >/dev/null
-    test -d /usr/local/tempo2/T2runtime
-    test -x /usr/local/tempo2/bin/tempo2

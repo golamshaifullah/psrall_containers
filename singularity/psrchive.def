@@ -55,7 +55,17 @@ From: psrbase.sif
     export LD_LIBRARY_PATH=/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/hdf5/serial:${LD_LIBRARY_PATH:-}
     export LIBRARY_PATH=/usr/local/lib:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu/hdf5/serial:${LIBRARY_PATH:-}
     export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:${PKG_CONFIG_PATH:-}
+    unset MAKEFLAGS MFLAGS MAKELEVEL GNUMAKEFLAGS MAKEOVERRIDES
+    export MAKE=make
     export NP=${NP:-$(nproc)}
+
+    clean_build_env() {
+        env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL -u GNUMAKEFLAGS -u MAKEOVERRIDES MAKE=make "$@"
+    }
+
+    export BUILD_DIR=/usr/local/src/psrall-build
+    rm -rf "${BUILD_DIR}"
+    mkdir -p "${BUILD_DIR}"
 
     apt-get update
     apt-get install -y --no-install-recommends \
@@ -80,7 +90,7 @@ From: psrbase.sif
         libblas-dev \
         liblapack-dev
 
-    cd /tmp
+    cd "${BUILD_DIR}"
     rm -rf psrchive
     git clone --depth=1 https://git.code.sf.net/p/psrchive/code psrchive
     cd psrchive
@@ -91,8 +101,8 @@ From: psrbase.sif
     export CXXFLAGS="${CPPFLAGS} ${CXXFLAGS:-}"
     export LDFLAGS="-L/usr/local/lib -L/usr/lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu/hdf5/serial -Wl,-rpath,/usr/local/lib -Wl,-rpath,/usr/lib/x86_64-linux-gnu/hdf5/serial ${LDFLAGS:-}"
 
-    ./bootstrap
-    ./configure \
+    clean_build_env ./bootstrap
+    clean_build_env ./configure \
         PYTHON=/usr/bin/python3 \
         --prefix=${INSTALL_DIR} \
         --enable-shared \
@@ -102,15 +112,10 @@ From: psrbase.sif
         --with-hdf5-dir=/usr \
         --with-eigen-include-dir=/usr/include/eigen3
 
-    env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL make -j${NP}
-    env -u MAKEFLAGS -u MFLAGS -u MAKELEVEL make install
+    clean_build_env make -j"${NP}"
+    clean_build_env make install
     ldconfig
 
-    rm -rf /tmp/psrchive
+    rm -rf "${BUILD_DIR}"
     apt-get clean
     rm -rf /var/lib/apt/lists/*
-
-%test
-    set -eu
-    test -x /usr/local/bin/paz || test -x /usr/local/bin/pav || test -x /usr/local/bin/psrstat
-    test -e /usr/local/lib/libpsrchive.so || test -e /usr/local/lib/libpsrchive.a

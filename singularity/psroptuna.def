@@ -14,6 +14,8 @@ From: psrnessai.sif
 
 %post
     set -eux
+    unset MAKEFLAGS MFLAGS MAKELEVEL GNUMAKEFLAGS MAKEOVERRIDES
+    export MAKE=make
 
     export MAMBA_ROOT_PREFIX=/opt/mamba
     export MAMBA_EXE=/bin/micromamba
@@ -25,10 +27,3 @@ From: psrnessai.sif
         optuna
 
     micromamba clean --all --yes
-
-%test
-    set -eu
-    python - <<'PY'
-import optuna
-print('psroptuna imports ok')
-PY

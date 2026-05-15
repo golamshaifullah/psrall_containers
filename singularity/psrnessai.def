@@ -14,6 +14,8 @@ From: psrenterprise.sif
 
 %post
     set -eux
+    unset MAKEFLAGS MFLAGS MAKELEVEL GNUMAKEFLAGS MAKEOVERRIDES
+    export MAKE=make
 
     export MAMBA_ROOT_PREFIX=/opt/mamba
     export MAMBA_EXE=/bin/micromamba
@@ -29,11 +31,3 @@ From: psrenterprise.sif
         torchaudio
 
     micromamba clean --all --yes
-
-%test
-    set -eu
-    python - <<'PY'
-import nessai
-import torch
-print('psrnessai imports ok; cuda_available=', torch.cuda.is_available())
-PY

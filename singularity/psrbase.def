@@ -175,22 +175,32 @@ From: mambaorg/micromamba:2.6.1
     echo "/usr/lib" > /etc/ld.so.conf.d/pgplot.conf
     ldconfig
 
-    # ----------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # HDF5
-    # ----------------------------------------------------------------------
-    cd /tmp
-    curl -fL --retry 3 -o hdf5-${HDF5_VERSION}.tar.gz \
-        https://support.hdfgroup.org/releases/hdf5/v1_14/v1_14_6/downloads/hdf5-${HDF5_VERSION}.tar.gz
-    tar -xzf hdf5-${HDF5_VERSION}.tar.gz
-    cd hdf5-${HDF5_VERSION}
-    ./configure \
-        --prefix=/usr/local/hdf5 \
-        --enable-cxx \
-        --enable-fortran \
-        --enable-profiling=yes
-    make -j$(nproc)
-    make install
-    rm -rf /tmp/hdf5-${HDF5_VERSION} /tmp/hdf5-${HDF5_VERSION}.tar.gz
+    #
+    # Do not build HDF5 from source here. The recursive autotools build can trip
+    # over GNU make jobserver state inside container/CI builds.
+    # -------------------------------------------------------------------------
+    
+    apt-get update
+    apt-get install -y --no-install-recommends \
+        libhdf5-dev \
+        hdf5-tools
+    rm -rf /var/lib/apt/lists/*
+    
+    # Debian serial HDF5 layout.
+    export HDF5_DIR=/usr
+    export HDF5_INCLUDE_DIR=/usr/include/hdf5/serial
+    export HDF5_LIB_DIR=/usr/lib/x86_64-linux-gnu/hdf5/serial
+    export HDF5_CFLAGS="-I${HDF5_INCLUDE_DIR}"
+    export HDF5_LIBS="-L${HDF5_LIB_DIR} -lhdf5 -lhdf5_hl"
+    
+    # Make generic configure scripts find it.
+    ln -sf /usr/include/hdf5/serial/hdf5.h /usr/local/include/hdf5.h
+    ln -sf /usr/lib/x86_64-linux-gnu/hdf5/serial/libhdf5.so /usr/local/lib/libhdf5.so
+    ln -sf /usr/lib/x86_64-linux-gnu/hdf5/serial/libhdf5_hl.so /usr/local/lib/libhdf5_hl.so
+    
+    ldconfig
 
     # ----------------------------------------------------------------------
     # CFITSIO

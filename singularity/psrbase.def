@@ -227,7 +227,7 @@ From: mambaorg/micromamba:2.6.1
     ./bootstrap
     ./configure \
         --prefix=${TEMPO2} \
-        --with-pgplot=${PGPLOT_DIR} \
+        --with-pgplot=/usr \
         --with-tempo2-plug-dir=${TEMPO2}/plugins \
         --with-fftw3-dir=/usr \
         --enable-static \
